@@ -457,9 +457,9 @@
           </div>
 
           <div class="field">
-            <label for="lf-email">Correo empresarial <span class="req">*</span></label>
-            <input type="email" id="lf-email" placeholder="tu@empresa.com" autocomplete="email">
-            <div class="field-error" id="err-email">Usa un correo empresarial válido (no Gmail, Hotmail ni Outlook).</div>
+            <label for="lf-email">Correo electrónico <span class="req">*</span></label>
+            <input type="email" id="lf-email" placeholder="tu@correo.com" autocomplete="email">
+            <div class="field-error" id="err-email">Ingresa un correo electrónico válido.</div>
           </div>
 
           <div class="privacy-note">
@@ -706,13 +706,6 @@ submitBtn.addEventListener('click', () => {
 });
 
 /* ============ PASO 2: validar formulario de contacto -> generar reporte ============ */
-const BLOCKED_EMAIL_DOMAINS = [
-  'gmail.com','hotmail.com','hotmail.es','hotmail.com.mx','outlook.com','outlook.es',
-  'live.com','live.com.mx','msn.com','yahoo.com','yahoo.com.mx','yahoo.es','ymail.com',
-  'icloud.com','me.com','mac.com','aol.com','protonmail.com','proton.me','gmx.com',
-  'zoho.com','mail.com','yandex.com','pm.me'
-];
-
 function showError(id, errId, show){
   document.getElementById(id).classList.toggle('invalid', show);
   if (errId) document.getElementById(errId).classList.toggle('show', show);
@@ -739,11 +732,9 @@ function validateLeadForm(){
   showError('lf-employees','err-employees', noEmp);
   if (noEmp) ok = false;
 
-  // Correo empresarial válido (formato + dominio no gratuito)
+  // Correo válido (cualquier dominio, solo se valida el formato)
   const val = email.value.trim().toLowerCase();
-  const formatOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
-  const domain = val.split('@')[1] || '';
-  const emailOk = formatOk && !BLOCKED_EMAIL_DOMAINS.includes(domain);
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val);
   showError('lf-email','err-email', !emailOk);
   if (!emailOk) ok = false;
 
@@ -788,7 +779,7 @@ async function sendToWeb3Forms(lead, scoreData){
     'Cargo': lead.cargo,
     'Empresa': lead.empresa,
     'Número de empleados': lead.empleados,
-    'Correo empresarial': lead.correo,
+    'Correo electrónico': lead.correo,
     'Acepta Aviso de Privacidad': lead.aviso_privacidad ? 'Sí' : 'No',
     'Acepta marketing': lead.marketing ? 'Sí' : 'No',
     'Score total': `${scoreData.totalScore} / 100`,
