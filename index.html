@@ -702,7 +702,7 @@ document.querySelectorAll('input[type="radio"]').forEach(input => {
 submitBtn.addEventListener('click', () => {
   document.getElementById('assessment').style.display = 'none';
   document.getElementById('lead-gate').classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  flintGoTop();
 });
 
 /* ============ PASO 2: validar formulario de contacto -> generar reporte ============ */
@@ -987,7 +987,7 @@ function renderReport(scoreData){
   document.getElementById('lead-gate').classList.remove('active');
   document.getElementById('assessment').style.display = 'none';
   document.getElementById('report').classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  flintGoTop();
 }
 
 document.getElementById('restart-btn').addEventListener('click', () => {
@@ -1002,8 +1002,22 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   document.getElementById('report').classList.remove('active');
   document.getElementById('lead-gate').classList.remove('active');
   document.getElementById('assessment').style.display = 'block';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  flintGoTop();
 });
+
+/* ============ Soporte para embeber vía <iframe> en Webflow ============
+   Informa la altura del contenido al sitio contenedor para evitar scrollbars
+   internas y cortes, y pide subir al inicio en cada cambio de pantalla. */
+function postHeight(){
+  try { parent.postMessage({ flintDiagnosticoHeight: document.documentElement.scrollHeight }, '*'); } catch(e){}
+}
+function flintGoTop(){
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch(e){}
+  try { parent.postMessage({ flintScrollTop: true }, '*'); } catch(e){}
+}
+window.addEventListener('load', postHeight);
+window.addEventListener('resize', postHeight);
+if (window.ResizeObserver){ new ResizeObserver(postHeight).observe(document.body); }
 </script>
 </body>
 </html>
