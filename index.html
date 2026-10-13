@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
+<meta name="robots" content="noindex">
+<meta name="googlebot" content="noindex, indexifembedded">
+<script>try{if(window.self!==window.top)document.documentElement.classList.add("embedded")}catch(e){document.documentElement.classList.add("embedded")}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Diagnóstico de Madurez Financiera — Flint Consulting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -133,6 +136,21 @@
     height:100%;width:0%;background:linear-gradient(90deg,var(--flint-blue-deep),var(--flint-blue));
     border-radius:var(--r-pill);transition:width .5s cubic-bezier(.2,.8,.2,1);
   }
+  /* Botón de inicio dentro de la barra de progreso */
+  #progress-label.is-start{
+    display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+    background:var(--flint-blue);color:#fff !important;border:0;border-radius:var(--r-pill);
+    padding:12px 22px;font-family:'Inter',sans-serif;font-size:13px !important;letter-spacing:.08em !important;
+    box-shadow:0 10px 24px -10px rgba(0,176,240,.8);transition:background .2s,transform .2s;
+  }
+  #progress-label.is-start:hover{background:#0099d2;transform:translateY(-1px)}
+  #progress-label.is-start::after{content:'';width:7px;height:7px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) translateY(-2px)}
+  /* Embebido en flintconsulting.mx: el hero vive en la página de Webflow */
+  html.embedded .hero, html.embedded .nav-spacer{display:none}
+  html.embedded .container{padding-top:24px}
+  html.embedded .progress-shell{position:relative;top:auto;will-change:transform}
+  html.embedded .progress-shell.is-stuck{background:#fff;box-shadow:0 10px 24px -18px rgba(0,0,0,.35);margin-left:-32px;margin-right:-32px;padding-left:32px;padding-right:32px}
+  @media (max-width:720px){html.embedded .progress-shell.is-stuck{margin-left:-18px;margin-right:-18px;padding-left:18px;padding-right:18px}}
   .progress-fill.complete{background:linear-gradient(90deg,var(--flint-blue),var(--flint-blue-soft))}
 
   /* ============ PILLAR ============ */
@@ -384,7 +402,7 @@
     <div class="progress-shell">
       <div class="progress-info">
         <span><strong id="progress-count">0</strong> de 20 preguntas</span>
-        <span id="progress-label" style="color:var(--flint-black-2);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600">Comencemos</span>
+        <span id="progress-label" class="is-start" role="button" tabindex="0" style="color:var(--flint-black-2);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600">Comencemos</span>
       </div>
       <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
     </div>
@@ -683,6 +701,8 @@ document.querySelectorAll('input[type="radio"]').forEach(input => {
     const pct = (answered / TOTAL_QUESTIONS) * 100;
     progressFill.style.width = pct + '%';
     progressCount.textContent = answered;
+    progressLabel.classList.remove('is-start');
+    if (answered < 5) progressLabel.textContent = 'En progreso';
 
     if (answered === TOTAL_QUESTIONS) {
       progressFill.classList.add('complete');
@@ -989,6 +1009,7 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   progressFill.classList.remove('complete');
   progressCount.textContent = '0';
   progressLabel.textContent = 'Comencemos';
+  progressLabel.classList.add('is-start');
   submitBtn.disabled = true;
   document.getElementById('report').classList.remove('active');
   document.getElementById('lead-gate').classList.remove('active');
@@ -1009,6 +1030,38 @@ function flintGoTop(){
 window.addEventListener('load', postHeight);
 window.addEventListener('resize', postHeight);
 if (window.ResizeObserver){ new ResizeObserver(postHeight).observe(document.body); }
+
+/* ============ Embebido: hero en Webflow, inicio visible y barra de progreso fija ============ */
+var FLINT_EMB = false; try { FLINT_EMB = window.self !== window.top; } catch(e){ FLINT_EMB = true; }
+if (FLINT_EMB) document.documentElement.classList.add('embedded');
+function irAPrimeraPregunta(){
+  var q1 = document.querySelector('.question');
+  if (!q1) return;
+  var y = q1.getBoundingClientRect().top + window.scrollY - 140;
+  if (FLINT_EMB) { try { parent.postMessage({ flintScrollTo: y }, '*'); } catch(e){} }
+  else window.scrollTo({ top: y, behavior: 'smooth' });
+}
+progressLabel.addEventListener('click', function(){ if (progressLabel.classList.contains('is-start')) irAPrimeraPregunta(); });
+progressLabel.addEventListener('keydown', function(e){ if ((e.key === 'Enter' || e.key === ' ') && progressLabel.classList.contains('is-start')) { e.preventDefault(); irAPrimeraPregunta(); } });
+var flintVp = null;
+function fijarBarra(){
+  var bar = document.querySelector('.progress-shell');
+  var zona = document.getElementById('assessment');
+  if (!FLINT_EMB || !flintVp || !bar || !zona || zona.style.display === 'none') { if (bar) { bar.style.transform = ''; bar.classList.remove('is-stuck'); } return; }
+  bar.style.transform = '';
+  var natural = bar.getBoundingClientRect().top + window.scrollY;
+  var objetivo = flintVp.offset - flintVp.top;
+  var limite = zona.getBoundingClientRect().bottom + window.scrollY - bar.offsetHeight;
+  var y = Math.min(Math.max(objetivo, natural), limite);
+  var d = Math.max(0, y - natural);
+  bar.style.transform = d > 0 ? 'translateY(' + d + 'px)' : '';
+  bar.classList.toggle('is-stuck', d > 0);
+}
+window.addEventListener('message', function(e){
+  if (!e.data) return;
+  if (e.data.flintViewport) { flintVp = e.data.flintViewport; fijarBarra(); }
+  if (e.data.flintStart) irAPrimeraPregunta();
+});
 </script>
 </body>
 </html>
